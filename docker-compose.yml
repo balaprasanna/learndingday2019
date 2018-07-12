@@ -1,0 +1,51 @@
+version: '2'
+
+services:
+  mongodb:
+    image: aashreys/mongo-auth:latest
+    restart: unless-stopped
+    container_name: "mongodb"
+    environment:
+      - AUTH=yes
+      - MONGODB_ADMIN_USER=admin
+      - MONGODB_ADMIN_PASS=admin
+      - MONGODB_APPLICATION_DATABASE=taskdb
+      - MONGODB_APPLICATION_USER=root
+      - MONGODB_APPLICATION_PASS=supersecret
+    # volumes:
+    #   - ./mongodb/data/db:/data/db
+    ports:
+        - 27017:27017
+    # command: mongod --noauth --bind_ip=0.0.0.0 --smallfiles --oplogSize 128
+    networks:
+      - task_service_net
+  
+  task_service:
+    build: ./task-service/src
+    image: task-service:v1.0
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on: 
+      - mongodb
+    networks:
+      - task_service_net
+  # NOTE: check webapp/src/config/config.js => mongodb connection to alias, resolves to docker internal ip address
+  
+
+  frontend:
+    build: ./frontend-service/frontend/app
+    image: frontend:v1.0
+    restart: always
+    environment:
+      - REACT_APP_API_HOST=http://192.168.99.100:3000
+    # volumes:
+    #   - ./frontend/todo-app:/app
+    ports:
+      - "80:3000"
+    depends_on: 
+      - task_service
+
+networks:
+  task_service_net:
+    driver: bridge
