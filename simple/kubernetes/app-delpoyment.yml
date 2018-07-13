@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: simple-app
+  labels:
+    app: simple-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simple-app
+  template:
+    metadata:
+      labels:
+        app: simple-app
+    spec:
+      containers:
+        - image: balanus/simple-app
+          name: simple-app
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: simple-app
